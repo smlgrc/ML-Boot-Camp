@@ -18,15 +18,23 @@ def vectors():
 
     x, y = np.array([[-2], [2]]), np.array([[4], [-3]])
     print()
-    print(f'\nx.transpose() @ y = \n{x.transpose() @ y}')
-    print(f'\nx.transpose() * y = \n{x.transpose() * y}')
+    print(f'\nx.transpose() @ y = \n{x.transpose() @ y}')  # dot product
     print(f'\nx.transpose = {x.transpose()}')
     print(y)
     print(x * y)
 
     # TODO: Continue at VECTOR NULL SPACE - NOW THAT WE KNOW WHAT SUBSPACES AND LINEAR ...
-    x = np.array([[3], [4]])  # = 25
+    # In Numpy, we can compute the L2 norm as:
+    x = np.array([[3], [4]])  # = 5.0
     print(f'\nnp.linalg.norm(x, 2) = {np.linalg.norm(x, 2)}')
+
+    # In Numpy, we can compute the L1 norm as:
+    x = np.array([[3], [-4]])  # = 7.0
+    print(f'\nnp.linalg.norm(x, 2) = {np.linalg.norm(x, 1)}')
+
+    
+
+
 
 
 
