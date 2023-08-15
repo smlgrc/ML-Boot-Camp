@@ -14,7 +14,7 @@ def vectors():
     alpha, beta = 2, 3
     x, y = np.array([[2], [3]]), np.array([[4], [5]])
     print()
-    print(alpha * x + beta * y)
+    print(f'alpha * x + beta * y =\n{alpha * x + beta * y}')
 
     x, y = np.array([[-2], [2]]), np.array([[4], [-3]])
     print()
@@ -25,6 +25,8 @@ def vectors():
     print(x * y)
 
     # TODO: Continue at VECTOR NULL SPACE - NOW THAT WE KNOW WHAT SUBSPACES AND LINEAR ...
+    x = np.array([[3], [4]])  # = 25
+    print(f'\nnp.linalg.norm(x, 2) = {np.linalg.norm(x, 2)}')
 
 
 
