@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    #vis.vega-embed {
+      width: 100%;
+      display: flex;
+    }
+
+    #vis.vega-embed details,
+    #vis.vega-embed details summary {
+      position: relative;
+    }
+  </style>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.8.0"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+  <div id="vis"></div>
+  <script>
+    (function(vegaEmbed) {
+      var spec = {"usermeta": {"embedOptions": {"theme": "dark"}}, "config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "layer": [{"mark": {"type": "line"}, "encoding": {"x": {"field": "x1", "type": "quantitative"}, "y": {"field": "y1", "type": "quantitative"}}}, {"mark": {"type": "line", "color": "red"}, "encoding": {"x": {"field": "x2", "type": "quantitative"}, "y": {"field": "y2", "type": "quantitative"}}}], "data": {"name": "data-57ffab6a26a928c2ff17e40b29b8a272"}, "$schema": "https://vega.github.io/schema/vega-lite/v5.8.0.json", "datasets": {"data-57ffab6a26a928c2ff17e40b29b8a272": [{"x1": 0, "y1": 8, "x2": 0.5, "y2": 0}, {"x1": 2, "y1": 3, "x2": 2.0, "y2": 3}]}};
+      var embedOpt = {"mode": "vega-lite"};
+
+      function showError(el, error){
+          el.innerHTML = ('<div style="color:red;">'
+                          + '<p>JavaScript Error: ' + error.message + '</p>'
+                          + "<p>This usually means there's a typo in your chart specification. "
+                          + "See the javascript console for the full traceback.</p>"
+                          + '</div>');
+          throw error;
+      }
+      const el = document.getElementById('vis');
+      vegaEmbed("#vis", spec, embedOpt)
+        .catch(error => showError(el, error));
+    })(vegaEmbed);
+
+  </script>
+</body>
+</html>
