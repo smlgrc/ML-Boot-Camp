@@ -106,7 +106,7 @@ def generate_rules(patterns: list):
     ruler.add_patterns(patterns)
 
     # nlp.add_pipe(ruler)  # This step integrates the custom entity recognition rules defined in ruler into pipeline
-    nlp.to_disk("hp_ner_folder/hp_ner")  # Save spaCy pipeline, including custom ruler to disk
+    nlp.to_disk("ner_youtube_tutorials/hp_folders/hp_ner")  # Save spaCy pipeline, including custom ruler to disk
 
 
 def test_model(nlp_model, text):

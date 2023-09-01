@@ -33,5 +33,5 @@ def extract_hp_characters():
                 else:
                     names.append(name)
     print (names)
-    with open ("ner_youtube_data/hp_characters.json", "w", encoding="utf-8") as f:
+    with open ("ner_youtube_tutorials/data/hp_characters.json", "w", encoding="utf-8") as f:
         json.dump(names, f, indent=4)
