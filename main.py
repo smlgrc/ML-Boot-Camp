@@ -1,82 +1,184 @@
-# import pandas as pd
+import time
+import re
+import os
+import json
+from io import TextIOWrapper
+from typing import TextIO
+import utility_functions as util_func
+
+import numpy as np
+from matplotlib import pyplot as plt
+import pandas as pd
+
 # import sklearn
 # from sklearn.datasets import fetch_openml
 # from keras.utils import to_categorical
 # from sklearn.model_selection import train_test_split
-# import numpy as np
-# import json
-# from matplotlib import pyplot as plt
 # import ner_youtube_functions
 # import tutorials
-# import utility_functions as util_func
-# import json
+
 # import random
 # import ner_youtube_tutorials.ner_youtube_tutorial_04_01 as yt_0401
 # import ner_youtube_tutorials.ner_youtube_tutorial_04_02 as yt_0402
-import ner_youtube_tutorials.ner_youtube_tutorial_04_03 as yt_0403
-import re
-import spacy
-import time
-import os
-import tutorials
+# import ner_youtube_tutorials.ner_youtube_tutorial_04_03 as yt_0403
+# import spacy
 
+# OIE analysis libraries
+import nltk
+from nltk import word_tokenize
+from nltk.probability import FreqDist
+from nltk.corpus import stopwords
+import urllib.request
+from matplotlib import pyplot as plt
+from wordcloud import WordCloud
+# # is a pre-trained ML model that NLTK uses for tokenization tasks, for sentence and word tokenization
+# nltk.download('punkt')
 
 # NYT_PATH = 'ner_youtube_tutorials'
 # NYT_DATA_PATH = os.path.join(NYT_PATH, "data")
 # NYT_HP_FOLDER_PATH = os.path.join(NYT_PATH, "hp_folders")
+OIE_CORPUS_FOLDER = r"C:\Users\Sam\Downloads\snapshot_oie_corpus.tar\snapshot_oie_corpus\oie_corpus"
 
 
-def ner_youtube_tutorial():
-    # https://youtu.be/6HM75qOsgkU?si=smI6H-dIVCQrRtW-
-    # TRAIN_DATA = load_data("data/hp_training_data.json")
-    # nlp = train_spacy(TRAIN_DATA, 30)
-    # nlp.to_disk("hp_ner_model")
+def oie_parsing() -> tuple:
+    # Define the path to your .oie file
+    oie_file_path = os.path.join(OIE_CORPUS_FOLDER, "all.oie")
 
-    test = "Harry James[59] Potter (b. 31 July 1980[1]) was an English half-blood[2] wizard, and one of the most famous wizards of modern times. He was the only child and son of James and Lily Potter (née Evans), both members of the original Order of the Phoenix. Harry's birth was overshadowed by a prophecy, naming either himself or Neville Longbottom as the one with the power to vanquish Lord Voldemort. After half of the prophecy was reported to Voldemort, courtesy of Severus Snape, Harry was chosen as the target due to his many similarities with the Dark Lord. In turn, this caused the Potter family to go into hiding. Voldemort made his first vain attempt to circumvent the prophecy when Harry was a year and three months old. During this attempt, he murdered Harry's parents as they tried to protect him, but this unsuccessful attempt to kill Harry led to Voldemort's first downfall. This downfall marked the end of the First Wizarding War, and to Harry henceforth being known as the 'Boy Who Lived',[5] as he was the only known survivor of the Killing Curse. One consequence of Lily's loving sacrifice was that her orphaned son had to be raised by her only remaining blood relative, his Muggle aunt, Petunia Dursley. While in her care he would be protected from Lord Voldemort, due to the Bond of Blood charm Albus Dumbledore placed upon him.[60] This powerful charm would protect him until he became of age, or no longer called his aunt's house home. Due to Petunia's resentment of her sister and her magic gifts, Harry grew up abused and neglected. On his eleventh birthday, Harry learned that he was a wizard, from Rubeus Hagrid.[61] He began attending Hogwarts School of Witchcraft and Wizardry in 1991. The Sorting Hat was initially going to Sort Harry into Slytherin House, but Harry pleaded 'not Slytherin' and the Hat heeded this plea, instead sorting the young wizard into Gryffindor House.[62] At school, Harry became best friends with Ron Weasley and Hermione Granger. He later became the youngest Quidditch Seeker in over a century and eventually the captain of the Gryffindor House Quidditch Team in his sixth year, winning two Quidditch Cups.[63] He became even better known in his early years for protecting the Philosopher's Stone from Voldemort, saving Ron's sister Ginny Weasley, solving the mystery of the Chamber of Secrets, slaying Salazar Slytherin's basilisk, and learning how to conjure a corporeal stag Patronus at the age of thirteen. In his fourth year, Harry won the Triwizard Tournament, although the competition ended with the tragic death of Cedric Diggory and the return of Lord Voldemort. During the next school year, Harry reluctantly taught and led Dumbledore's Army. He also fought in the Battle of the Department of Mysteries, during which he lost his godfather, Sirius Black."
-    test = yt_0403.clean_text(test)
+    # Initialize lists to store the extracted data
+    data: list = []
+    original_lines: list = []
 
-    people: list = []
-    nlp = spacy.load("ner_youtube_tutorials/hp_folders/hp_ner_model")
-    doc = nlp(test)
-    for ent in doc.ents:
-        if ent.label_ == "PERSON":
-            people.append(ent.text)
-    print(f"{len(people)} {people}")
+    # Open the .oie file for reading
+    with open(oie_file_path, 'r', encoding='utf-8') as oie_file:
+        # Iterate through each line in the file
+        for line in oie_file:
+            # Split the line into fields using tab ('\t') as the delimiter
+            original_lines.append(line)
+            fields = line.strip().split('\t')
 
-    # nlp = spacy.load("en_core_web_sm")
-    # nlp.to_disk("ner_youtube_tutorials/models/en_core_web_sm_demo")
-    people: list = []
-    nlp = spacy.load("en_core_web_sm")  # off the shelf spaCy model
-    doc = nlp(test)
-    for ent in doc.ents:
-        if ent.label_ == "PERSON":
-            people.append(ent.text)
-    print(f"{len(people)} {people}")
+            # Check if the line has at least three fields (sentence, relation, and at least two arguments)
+            if len(fields) >= 3:
+                sentence, relation = fields[:2]
+                args = fields[2:]
+            else:
+                print(f"Skipping line: {line}")
 
-    # nlp = spacy.load("en_core_web_lg")
-    # nlp.to_disk("ner_youtube_tutorials/models/en_core_web_lg_demo")
-    people: list = []
-    nlp = spacy.load("en_core_web_lg")  # off the shelf spaCy model
-    doc = nlp(test)
-    for ent in doc.ents:
-        if ent.label_ == "PERSON":
-            people.append(ent.text)
-    print(f"{len(people)} {people}")
+            data.append({
+                "sentence": sentence,
+                "relation": relation,
+                "arguments": args
+            })
+
+    # Close the .oie file
+    oie_file.close()
+
+    return data, original_lines
 
 
+def oie_to_text_file(data: list):
+    file_lines: list = []
+
+    # this appends the above extracted information to a list to be written
+    for i in range(len(data)):
+        file_lines.append(f"Extraction {i + 1}:\n")
+        file_lines.append(f"Sentence: {data[i]['sentence']}\n")
+        file_lines.append(f"Relation: {data[i]['relation']}\n")
+        file_lines.append(f"Arguments: {', '.join(data[i]['arguments'])}\n")
+        file_lines.append("\n")
+
+    with open('OIE Parsing.txt', 'w', encoding="utf-8") as f:
+        f.writelines(file_lines)
+
+
+def oie_data() -> list:
+    data, original_lines = oie_parsing()
+
+    # For example, you can print the extracted information
+    for i in range(5):
+        print(f"Extraction {i + 1}:")
+        print(f"Original line: {original_lines[i].strip()}")
+        print(f"Sentence: {data[i]['sentence']}")
+        print(f"Relation: {data[i]['relation']}")
+        print(f"Arguments: {', '.join(data[i]['arguments'])}")
+        print()
+
+    # oie_to_text_file(data)
+    # oie_to_json(data)
+
+    return data
+
+
+def oie_analysis(text: str = "", text_list: list = None):
+    data: list = oie_data()
+
+    average_sentence_length = round(sum(len(string) for string in text_list) / len(text_list))
+    average_words_in_sentence = round(sum(util_func.num_of_words_in_str(sentence) for sentence in text_list) / len(text_list))
+    average_arguments_per_sentence = round(sum(len(data_set['arguments']) for data_set in data) / len(data))
+    print(f"Average sentence length = {average_sentence_length}")
+    print(f"Average words in sentence = {average_words_in_sentence}")
+    print(f"Average arguments per sentence = {average_arguments_per_sentence}")
+
+    if text_list is not None:
+        text: str = '\n'.join(text_list)
+
+    # tokenize text by words
+    words: list = word_tokenize(text)
+
+    clean_words: list = util_func.get_filtered_words(words)
+
+    processed_list: list = util_func.process_list(text_list)
+    gensim_modeling(processed_list)
+
+    # find the frequency of words
+    fdist: nltk.probability.FreqDist = FreqDist(clean_words)
+
+    # # Plot the 10 most common words
+    # fdist.plot(20, title="derp", percents=True, show=True)
+    # plt.show()
+
+    sorted_list: list = sorted(fdist.items(), key=lambda item: item[1], reverse=True)
+
+    util_func.plot_graph(sorted_list, 30)
+
+    # Convert word list to a single string
+    clean_words_string = " ".join(clean_words)
+
+    # generating the wordcloud
+    wordcloud = WordCloud(background_color="white").generate(clean_words_string)
+
+    # plot the wordcloud
+    plt.figure(figsize=(12, 12))
+    plt.imshow(wordcloud)
+
+    # # to remove the axis value
+    plt.axis("off")
+    plt.show()
+
+
+def oie_to_json(data: list):
+    unique_list: list = []
+    for data_set in data:
+        unique_list.append(data_set['sentence'])
+
+    unique_list = list(set(unique_list))
+
+    with open("OIE Sentences.json", 'w') as json_file:
+        json.dump(unique_list, json_file)
 
 
 def main():
-    # tutorials.nn_from_scratch()
-    # tutorials.patrick_loeber_tutorial()
-    # tutorials.samson_zhang_nn()
-    ner_youtube_tutorial()
+    # retrieve text file from source, then read and decode the text
+    # text: str = open("all.txt", "r", encoding='utf-8').read()
+    text_list: list = util_func.load_json("OIE Sentences.json")
+
+    oie_analysis(text_list=text_list)
 
 
 if __name__ == '__main__':
     startTime = time.time()
+
     main()
+
     endTime = time.time()
     finalTime = (endTime - startTime)
-
     print("\nRunning Time:", "{:.2f}".format(finalTime) + " s")

@@ -9,6 +9,7 @@ import random
 import re
 from spacy.training.example import Example
 
+
 def load_data(file):
     with open(file, "r", encoding="utf-8") as f:
         data = json.load(f)
