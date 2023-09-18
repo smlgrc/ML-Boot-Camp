@@ -4,6 +4,8 @@ import os
 import json
 from io import TextIOWrapper
 from typing import TextIO
+
+import OIE
 import utility_functions as util_func
 
 import numpy as np
@@ -37,148 +39,67 @@ from wordcloud import WordCloud
 # NYT_PATH = 'ner_youtube_tutorials'
 # NYT_DATA_PATH = os.path.join(NYT_PATH, "data")
 # NYT_HP_FOLDER_PATH = os.path.join(NYT_PATH, "hp_folders")
-OIE_CORPUS_FOLDER = r"C:\Users\Sam\Downloads\snapshot_oie_corpus.tar\snapshot_oie_corpus\oie_corpus"
+# OIE_CORPUS_FOLDER = r"C:\Users\Sam\Downloads\snapshot_oie_corpus.tar\snapshot_oie_corpus\oie_corpus"
 
 
-def oie_parsing() -> tuple:
-    # Define the path to your .oie file
-    oie_file_path = os.path.join(OIE_CORPUS_FOLDER, "all.oie")
+def coreNLP_tutorial(text: str = None, corpus_path: str = None):
+    from openie import StanfordOpenIE
 
-    # Initialize lists to store the extracted data
-    data: list = []
-    original_lines: list = []
+    # Demo purposes
+    if text is None:
+        text = 'Barack Obama was born in Hawaii. Richard Manning wrote this sentence.'
+    if corpus_path is None:
+        corpus_path = 'corpus/pg6130.txt'
 
-    # Open the .oie file for reading
-    with open(oie_file_path, 'r', encoding='utf-8') as oie_file:
-        # Iterate through each line in the file
-        for line in oie_file:
-            # Split the line into fields using tab ('\t') as the delimiter
-            original_lines.append(line)
-            fields = line.strip().split('\t')
+    # https://stanfordnlp.github.io/CoreNLP/openie.html#api
+    # Default value of openie.affinity_probability_cap was 1/3.
+    properties = {
+        'openie.affinity_probability_cap': 2 / 3,
+    }
 
-            # Check if the line has at least three fields (sentence, relation, and at least two arguments)
-            if len(fields) >= 3:
-                sentence, relation = fields[:2]
-                args = fields[2:]
-            else:
-                print(f"Skipping line: {line}")
+    with StanfordOpenIE(properties=properties) as client:
+        # text = 'Barack Obama was born in Hawaii. Richard Manning wrote this sentence.'
+        print('Text: %s.' % text)
+        for triple in client.annotate(text):
+            print('|-', triple)
 
-            data.append({
-                "sentence": sentence,
-                "relation": relation,
-                "arguments": args
-            })
+        # graph_image = 'graph.png'
+        # client.generate_graphviz_graph(text, graph_image)
+        # print('Graph generated: %s.' % graph_image)
 
-    # Close the .oie file
-    oie_file.close()
+        with open(corpus_path, encoding='utf8') as r:
+            corpus = r.read().replace('\n', ' ').replace('\r', '')
 
-    return data, original_lines
-
-
-def oie_to_text_file(data: list):
-    file_lines: list = []
-
-    # this appends the above extracted information to a list to be written
-    for i in range(len(data)):
-        file_lines.append(f"Extraction {i + 1}:\n")
-        file_lines.append(f"Sentence: {data[i]['sentence']}\n")
-        file_lines.append(f"Relation: {data[i]['relation']}\n")
-        file_lines.append(f"Arguments: {', '.join(data[i]['arguments'])}\n")
-        file_lines.append("\n")
-
-    with open('OIE Parsing.txt', 'w', encoding="utf-8") as f:
-        f.writelines(file_lines)
-
-
-def oie_data() -> list:
-    data, original_lines = oie_parsing()
-
-    # For example, you can print the extracted information
-    for i in range(5):
-        print(f"Extraction {i + 1}:")
-        print(f"Original line: {original_lines[i].strip()}")
-        print(f"Sentence: {data[i]['sentence']}")
-        print(f"Relation: {data[i]['relation']}")
-        print(f"Arguments: {', '.join(data[i]['arguments'])}")
-        print()
-
-    # oie_to_text_file(data)
-    # oie_to_json(data)
-
-    return data
-
-
-def oie_analysis(text: str = "", text_list: list = None):
-    data: list = oie_data()
-
-    average_sentence_length = round(sum(len(string) for string in text_list) / len(text_list))
-    average_words_in_sentence = round(sum(util_func.num_of_words_in_str(sentence) for sentence in text_list) / len(text_list))
-    average_arguments_per_sentence = round(sum(len(data_set['arguments']) for data_set in data) / len(data))
-    print(f"Average sentence length = {average_sentence_length}")
-    print(f"Average words in sentence = {average_words_in_sentence}")
-    print(f"Average arguments per sentence = {average_arguments_per_sentence}")
-
-    if text_list is not None:
-        text: str = '\n'.join(text_list)
-
-    # tokenize text by words
-    words: list = word_tokenize(text)
-
-    clean_words: list = util_func.get_filtered_words(words)
-
-    processed_list: list = util_func.process_list(text_list)
-    gensim_modeling(processed_list)
-
-    # find the frequency of words
-    fdist: nltk.probability.FreqDist = FreqDist(clean_words)
-
-    # # Plot the 10 most common words
-    # fdist.plot(20, title="derp", percents=True, show=True)
-    # plt.show()
-
-    sorted_list: list = sorted(fdist.items(), key=lambda item: item[1], reverse=True)
-
-    util_func.plot_graph(sorted_list, 30)
-
-    # Convert word list to a single string
-    clean_words_string = " ".join(clean_words)
-
-    # generating the wordcloud
-    wordcloud = WordCloud(background_color="white").generate(clean_words_string)
-
-    # plot the wordcloud
-    plt.figure(figsize=(12, 12))
-    plt.imshow(wordcloud)
-
-    # # to remove the axis value
-    plt.axis("off")
-    plt.show()
-
-
-def oie_to_json(data: list):
-    unique_list: list = []
-    for data_set in data:
-        unique_list.append(data_set['sentence'])
-
-    unique_list = list(set(unique_list))
-
-    with open("OIE Sentences.json", 'w') as json_file:
-        json.dump(unique_list, json_file)
+        triples_corpus = client.annotate(corpus[0:5000])
+        print('Corpus: %s [...].' % corpus[0:80])
+        print('Found %s triples in the corpus.' % len(triples_corpus))
+        for triple in triples_corpus[:5]:
+            print('|-', triple)
+        print('[...]')
 
 
 def main():
-    # retrieve text file from source, then read and decode the text
-    # text: str = open("all.txt", "r", encoding='utf-8').read()
-    text_list: list = util_func.load_json("OIE Sentences.json")
+    # corpus_path: str = "OIE Sentences.txt"
+    # text: str = "My name is Samuel Garcia. I was born in California. I wrote this sentence."
+    # coreNLP_tutorial(text=text, corpus_path=corpus_path)
 
-    oie_analysis(text_list=text_list)
+    OIE.run_oie_analysis()
+
+    # from allennlp.predictors.predictor import Predictor
+    # import allennlp_models.tagging
+    #
+    # predictor = Predictor.from_path(
+    #     "https://storage.googleapis.com/allennlp-public-models/openie-model.2020.03.26.tar.gz")
+    # predictor.predict(
+    #     sentence="In December, John decided to join the party.."
+    # )
 
 
 if __name__ == '__main__':
-    startTime = time.time()
+    start = time.time()
 
     main()
 
-    endTime = time.time()
-    finalTime = (endTime - startTime)
-    print("\nRunning Time:", "{:.2f}".format(finalTime) + " s")
+    end = time.time()
+    finalTime = end - start
+    print("\nProgram run time:", "{:.2f}".format(finalTime) + " s")
