@@ -4,6 +4,9 @@ ner_youtube_tutorials/models/
 corpus/
 model/
 training/
+ollie/
+*.mco
+UNGD/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -113,3 +116,4 @@ venv.bak/
 *.bin
 *.json
 *.txt
+
