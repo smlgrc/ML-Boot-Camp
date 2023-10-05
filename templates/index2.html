@@ -32,8 +32,21 @@
     </form>
     <div>
         <h2>Result:</h2>
-        <p>{{ result }}</p>
-        <p>{{ message }}</p>
+<!--        <p>{{ result }}</p>-->
+<!--        <p>{{ message }}</p>-->
+            <pre id="json-container"></pre>
+            <script>
+                // Get the JSON data passed from Python
+                var jsonData = JSON.parse('{{ result | safe }}'); // Use a template engine to inject JSON data safely
+                // var jsonData = JSON.parse('\"hello');
+
+                // console.log(jsonData);
+
+                // Format and display the JSON data
+                var formattedJson = JSON.stringify(jsonData, null, 2); // Indentation of 2 spaces
+                document.getElementById("json-container").textContent = formattedJson;
+            </script>
+            <p>{{ message }}</p>
     </div>
 </body>
 </html>

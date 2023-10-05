@@ -45,75 +45,64 @@ from wordcloud import WordCloud
 
 import subprocess
 
-def spacy_claucy():
-    import spacy
-    import claucy
 
-    nlp = spacy.load("en_core_web_sm")
-    claucy.add_to_pipe(nlp)
+def allenNLP(sentence: str, json_list: list):
+    """
+    (Pdb) line
+    'The effect is that lawsuits that might have been barred because they were filed too late could proceed because of the one - year extension .\tbarred\tmight have been barred\tlawsuits\tbecause they were filed too late could proceed because of the one - year extension\n'
+    (Pdb) line.strip().split('\t')
+    ['The effect is that lawsuits that might have been barred because they were filed too late could proceed because of the one - year extension .', 'barred', 'might have been barred', 'lawsuits', 'because they were filed too late could proceed because of the one - year extension']
+    """
+    from allennlp.predictors.predictor import Predictor
 
-    doc = nlp("AE died in Princeton in 1955.")
+    # Load the OpenIE predictor
+    predictor = Predictor.from_path(
+        "https://storage.googleapis.com/allennlp-public-models/openie-model.2020.03.26.tar.gz")
+    # # Load the OpenIE predictor with the BERT-based SRL model
+    # predictor = Predictor.from_path(
+    #     "https://storage.googleapis.com/allennlp-public-models/bert-base-srl-2020.11.19.tar.gz")
 
-    print(doc._.clauses)
-    # Output:
-    # &lt;SV, AE, died, None, None, None, [in Princeton, in 1955]&gt;
+    # Extract relations and arguments
+    output = predictor.predict(sentence=sentence)
 
-    propositions = doc._.clauses[0].to_propositions(as_text=True)
+    # Extract subjects, relations, and objects from the descriptions
+    for verb_info in output['verbs']:
+        # subject = ""
+        verb = ""
+        arguments = []
 
-    breakpoint()
+        description = verb_info['description']
+        verb = verb_info['verb']
 
-    print(propositions)
-    # Output:
-    # [AE died in Princeton in 1955, AE died in 1955, AE died in Princeton
+        # Use regular expressions to find all ARGs with numbers attached and their values
+        arg_pattern = r'\[ARG(\d+): (.*?)\]'
+        arg_matches = re.findall(arg_pattern, description)
 
+        # Create a dictionary to store the extracted arguments and values
+        arg_dict = {arg_num: arg_value for arg_num, arg_value in arg_matches}
 
-def ollie_tutorial():
-    sentence = "Barack Obama was born in Hawaii."
-    try:
-        # Run Ollie as a subprocess
-        result = subprocess.run(
-            ["java", "-Xmx1g", "-jar", "ollie/ollie-app-latest.jar", "corpus/sample.txt"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
+        # Sort the dictionary by keys
+        arg_dict = dict(sorted(arg_dict.items()))
 
-        print("here1")
+        # Print the extracted argument and value pairs
+        if verb:
+            arguments.append(verb)  # adding verb to arguments because it's added to text.oie
+        for arg_num, arg_value in arg_dict.items():
+            if arg_num.isdigit():
+                arguments.append(arg_value)
 
-        # Extracted information is in the standard output
-        output = result.stdout
-
-        print("here2")
-
-        # Split the output into lines and extract relevant information
-        lines = output.strip().split("\n")
-
-        breakpoint()
-
-        subject = lines[0]
-        predicate = lines[1]
-        arguments = lines[2:]
-
-        print("here3")
-
-        print(subject, predicate, arguments)
-        return subject, predicate, arguments
-    except Exception as e:
-        print("Error:", str(e))
-        return None, None, []
-
-
-def huggingface():
-    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-
-    tokenizer = AutoTokenizer.from_pretrained("XLab/rst-information-extraction-11b")
-    model = AutoModelForSeq2SeqLM.from_pretrained("XLab/rst-information-extraction-11b")
-
-    inputs = tokenizer.encode(
-        "TEXT: this is the best cast iron skillet you will ever buy. QUERY: Is this review \"positive\" or \"negative\"",
-        return_tensors="pt")
-    outputs = model.generate(inputs)
-    print(tokenizer.decode(outputs[0], skip_special_tokens=True, clean_up_tokenization_spaces=True))
+        # print(f"\nDescription: {description}")
+        # print(f"arg_dict = {arg_dict}")
+        # print(f"Subject: {subject}")
+        print(f"\nOIE Extraction: {len(json_list) + 1}")
+        print(f"Sentence: {sentence}")
+        print(f"Predicate: {verb}")
+        print(f"Arguments: {arguments}")
+        json_list.append({
+            "sentence": sentence,
+            "predicate": verb,
+            "arguments": arguments
+        })
 
 
 def main():
@@ -121,13 +110,25 @@ def main():
     # text: str = "My name is Samuel Garcia. I was born in California. I wrote this sentence."
     # tutorials.coreNLP_tutorial(text=text, corpus_path=corpus_path)
 
-    # OIE.run_oie_analysis()
+    # OIE.run_oie_analysis()  # Outdated
 
     # spacy_claucy()
     # huggingface()
-    ollie_tutorial()
+    # ollie_tutorial()
 
-
+    # sentences = [
+    #     "The effect is that lawsuits that might have been barred because they were filed too late could proceed because of the one - year extension .",
+    #     "Mrs. Marcos has n't admitted that she filed any documents such as those sought by the government .",
+    #     "Metromedia , headed by John W. Kluge , has interests in telecommunications , robotic painting , computer software , restaurants and entertainment .",
+    #     "In his speech , the senator spoke of cutting the deficit .",
+    #     "Barack Obama was born in Hawaii .",
+    #     "Repeat customers also can purchase luxury items at reduced prices .",
+    # ]
+    sentences: list = util_func.load_json("OIE Sentences.json")
+    json_list: list = []
+    for sentence in sentences:
+        allenNLP(sentence, json_list)
+    util_func.list_to_json(json_list, "AllenNLP Extract.json")
 
 
 if __name__ == '__main__':

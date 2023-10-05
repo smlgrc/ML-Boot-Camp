@@ -7,6 +7,8 @@ training/
 ollie/
 *.mco
 UNGD/
+snapshot_oie_corpus/
+*.props
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

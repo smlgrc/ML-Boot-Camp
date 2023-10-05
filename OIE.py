@@ -282,5 +282,5 @@ def oie_to_text(data: list):
 def run_oie_analysis():
     # retrieve text file from source, then read and decode the text
     # text: str = open("all.txt", "r", encoding='utf-8').read()
-    text_list: list = load_json("OIE Sentences.json")
+    text_list: list = load_json("OIE Sentences Original.json")
     oie_analysis(text_list=text_list)

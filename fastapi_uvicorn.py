@@ -3,6 +3,8 @@ from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from openie import StanfordOpenIE
+import json
+import html
 
 """ returns a simple dictionary (json) """
 # app = FastAPI()
@@ -41,14 +43,16 @@ async def process_request(request: Request, sentence: str = Form(None)):
         if sentence:
             # Process the sentence here (replace with your logic)
             # result = f"You entered: {sentence}"
-            result = process_sentence(sentence)
+            result = json.dumps(process_sentence(sentence))
+            # breakpoint()
 
-            return templates.TemplateResponse("index2.html", {"request": request, "result": result})
+            return templates.TemplateResponse("index2.html", {"request": request, "result": result, "message": ""})
         else:
             return templates.TemplateResponse("index2.html", {"request": request, "message": "No sentence provided in the POST request."})
 
 
 def process_sentence(sentence: str):
+    # test_string = "`` It 's going to be a tough league , '' promises the 47 - year - old Mr. Campaneris ."
     subjects, predicates, objects = [], [], []
 
     # https://stanfordnlp.github.io/CoreNLP/openie.html#api
@@ -66,6 +70,13 @@ def process_sentence(sentence: str):
             predicates.append(triple['relation'])
             objects.append(triple['object'])
 
+        # sentence = html.escape(sentence.replace("'", "`"))
+        # sentence = sentence.replace('&#x27;', '&apos;')
+        # sentence = html.unescape(sentence)
+
+
+        # s = html.unescape("hello")
+        """"""
         # with open(corpus_path, encoding='utf8') as r:
         #     corpus = r.read().replace('\n', ' ').replace('\r', '')
         #     breakpoint()
@@ -76,8 +87,9 @@ def process_sentence(sentence: str):
         #     print('|-', triple)
         # print('[...]')
     # breakpoint()
+    s = sentence.replace("'", "`")
     return {
-        "sentence": sentence,
+        "sentence": html.escape(s),
         "subjects": subjects,
         "predicates": predicates,
         "objects": objects
@@ -86,7 +98,7 @@ def process_sentence(sentence: str):
 
 if __name__ == "__main__":
     # uvicorn.run(debug=True)
-    uvicorn.run(app, port=80, host="localhost")
+    uvicorn.run(app, port=80, host="localhost")  # 127.0.0.1
 
 
 
