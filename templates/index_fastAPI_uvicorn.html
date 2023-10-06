@@ -1,0 +1,52 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--    <title>Sentence TEST Processor</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--    <h1>Sentence TEST Processor</h1>-->
+<!--    <form method="post" action="/process/">-->
+<!--        <label for="sentence">Enter a Sentence:</label>-->
+<!--        <input type="text" name="sentence" id="sentence" required>-->
+<!--        <input type="submit" value="Process">-->
+<!--    </form>-->
+<!--    {% if processed_sentence %}-->
+<!--    <h2>Processed Sentence:</h2>-->
+<!--    <p>{{ processed_sentence }}</p>-->
+<!--    {% endif %}-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentence FASTAPI UVICORN Processor</title>
+</head>
+<body>
+    <h1>Sentence FASTAPI UVICORN Processor</h1>
+    <form method="post">
+        <label for="sentence">Enter a sentence:</label>
+        <input type="text" name="sentence" id="sentence" required>
+        <button type="submit">Process</button>
+    </form>
+    <div>
+        <h2>Result:</h2>
+<!--        <p>{{ result }}</p>-->
+<!--        <p>{{ message }}</p>-->
+            <pre id="json-container"></pre>
+            <script>
+                // Get the JSON data passed from Python
+                var jsonData = JSON.parse('{{ result | safe }}'); // Use a template engine to inject JSON data safely
+                // var jsonData = JSON.parse('\"hello');
+
+                // console.log(jsonData);
+
+                // Format and display the JSON data
+                var formattedJson = JSON.stringify(jsonData, null, 2); // Indentation of 2 spaces
+                document.getElementById("json-container").textContent = formattedJson;
+            </script>
+            <p>{{ message }}</p>
+    </div>
+</body>
+</html>
