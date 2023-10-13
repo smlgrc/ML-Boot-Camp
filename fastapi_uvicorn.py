@@ -21,18 +21,16 @@ templates = Jinja2Templates(directory="templates")
 async def process_request(request: Request, sentence: str = Form(None)):
     if request.method == "GET":
         # Handle GET request (display a form to enter a sentence)
-        return templates.TemplateResponse("index2.html", {"request": request, "message": "Please enter a sentence."})
+        return templates.TemplateResponse("index.html", {"request": request, "message": "Please enter a sentence."})
     elif request.method == "POST":
         # Handle POST request (process the submitted sentence)
         if sentence:
-            # Process the sentence here (replace with your logic)
-            # result = f"You entered: {sentence}"
+            # Process the sentence here
             result = json.dumps(process_sentence_AllenNLP(sentence))
-            # breakpoint()
 
-            return templates.TemplateResponse("index2.html", {"request": request, "result": result, "message": ""})
+            return templates.TemplateResponse("index.html", {"request": request, "result": result, "message": ""})
         else:
-            return templates.TemplateResponse("index2.html", {"request": request, "message": "No sentence provided in the POST request."})
+            return templates.TemplateResponse("index.html", {"request": request, "message": "No sentence provided in the POST request."})
 
 
 # def process_sentence_coreNLP(sentence: str):
@@ -127,7 +125,7 @@ if __name__ == "__main__":
 # def read_form(request: Request):
 #     # if request.method == "POST":
 #     request.query_params.get("sentence")
-#     return templates.TemplateResponse("index2.html", {"request": request})
+#     return templates.TemplateResponse("index.html", {"request": request})
 #
 # @app.post("/")
 # def process_sentence(sentence: str = Form(...)):
